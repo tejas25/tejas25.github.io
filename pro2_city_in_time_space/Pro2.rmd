@@ -1,0 +1,36 @@
+---
+date: "2017-12-15"
+tags:
+- Boston311
+- theme
+- command-line
+title: City in time and Space
+---
+
+ 
+*** 
+ 
+ 
+ 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Slide1.JPG")
+
+knitr::include_graphics("Slide2.JPG")
+
+knitr::include_graphics("Slide3.JPG")
+
+knitr::include_graphics("Slide4.JPG")
+
+knitr::include_graphics("Slide5.JPG")
+
+knitr::include_graphics("Slide6.JPG")
+
+knitr::include_graphics("Slide7.JPG")
+
+knitr::include_graphics("Slide8.JPG")
+
+knitr::include_graphics("Slide9.JPG")
+
+knitr::include_graphics("Slide10.JPG")
+```
+

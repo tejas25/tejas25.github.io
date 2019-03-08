@@ -1,0 +1,591 @@
+---
+date: "2018-12-07"
+tags:
+- Boston
+- Property Assessment
+- Machine Learning
+- Ensemble Learner
+title: Analysis of Boston Property Assessments
+---
+***
+```{r setup, include=FALSE}
+library("knitr")
+opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library("tidyverse")
+library("caret")
+library("neuralnet")
+library("rpart")
+library("rpart.plot")
+library("caretEnsemble")
+
+```
+
+***
+# Business Understanding : Introduction
+
+A recent article dated Nobember 28, 2018 from **[Boston Globe](https://www.bostonglobe.com/business/2018/11/28/there-are-signs-that-boston-area-heated-housing-market-cooling/OlvkEOZ9rmLJIHvDOvOTpK/story.html)** suggests that *"Boston is still a tough - and expensive - place to buy a house, but the years of prices galloping relentlessly upward may be nearing an end."* According to data from the Greater Boston Association of Realtors the number of homes and condominiums sold in Boston has increased 6 percent in July 2018 compared to July 2017. The volume of sales is slowing down inspite of newly listed homes have been increasing since last four months. However the properties with large areas, better eminities and viwes are in great demand and are sold at very high prices. With this background this exploratory research is focused on analysing the Boston property trends and make models to predict property values which can be helpful to sellers and buyers of Boston.     
+
+This assessment is carried out using the **_[CRISP-DM](https://exde.files.wordpress.com/2009/03/crisp_visualguide.pdf)_** methodology. CRISP-DM stands for Cross-Industry Process for Data Mining. The CRISP-DM methodology employs a structured approach to planning a data mining project.
+
+The objective of this project is to explore the **_[Boston Property Assessment](https://data.boston.gov/dataset/property-assessment/resource/fd351943-c2c6-4630-992d-3f895360febd)_** 2018 data, understand trends in property values within Boston and predict their property values based on the recorded charisteristics in this assessment dataset.  
+
+Insightful findings for Boston real estate are analyzed using open source Property Assessment data from the City of Boston for year 2018. Also machine learning algorithms have been applied to try and predict property values across the city.  
+
+The dataset along with data key is available at : https://data.boston.gov/dataset/property-assessment
+
+
+# Data Understanding
+
+The 2018 dataset has 75 features and 172841 records of property parcels.  Each observation represented a single property, and the features included characteristics about the property such as the location (zip code, street, unit number), the taxable value, square footage, year built/remodeled, and the condition, among many others.  
+
+It has various categorical, string and numeric features, which will be appropriately standardized depending on the machine learning algorithm. Apart from missing values the dataset is not too messy which reduces the hassle of tidying process.
+
+```{r}
+# reading the dataset in
+property <- read.csv("ast2018full.csv", header = T)
+
+# converting all features to lower case
+names(property) <- tolower(names(property))
+
+```
+
+
+## Types of Properties
+
+The variable `ptype` represents the "PROPERTY OCCUPANCY CODES". The codes and their description can explored from the **_[occupancy code sheet](https://data.boston.gov/dataset/property-assessment/resource/d6c1268c-cd83-4dc3-a914-bba1ed59da6d)_**.
+
+Properties like residential, apartment, commercial, multiple-use, industrial, ownership-exempt, tax-exempt and their subcategories are number coded in this variable. With the help of few codes shown below, frequencies of top 10 property occupancy types can be identified.
+
+```{r, message=FALSE, warning=FALSE}
+# extracting property occupancy codes frequencies
+top_prop <- as.data.frame(table(property$ptype))
+
+# renaming the columns
+colnames(top_prop) <- c("ptype", "Freq")
+
+# extracting top 10 property types based on frequency
+top_prop <- top_prop %>% arrange(desc(Freq)) %>% head(10)
+occu_code <- c("Residential Condo", "Single Fam Dwelling", "Two-Fam Dwelling", "Three-Fam Dwelling", "Tax Exmp Condo Main", "Condo Parking", "Vacant Land", "Oth Exmp Bldg", "Apt 4-6 Units", "Res/Commercial Use")
+top_prop <- cbind(top_prop, occu_code)
+top_prop[,c(3,1,2)]
+
+# calculating percent share of top 4 property types
+top_prop %>% arrange(desc(Freq)) %>% filter(Freq > 10000) %>% summarise("top_4_total" = sum(Freq), "top_4_share" = sum(Freq)/nrow(property), "Condo_share" = 62633/nrow(property))
+```
+
+About **72 percent** of the properties consists of **top 4 property type** frequencies which are "Residential Condo", "Single Fam Dwelling", "Two-Fam Dwelling", and "Three-Fam Dwelling" and **"Residential Condo"** alone accounts for **36.23 percent**. With this finding we can narrow down our analysis and focus on Condo property types.
+
+```{r}
+top_prop %>% ggplot(aes(reorder(occu_code, -Freq),Freq, fill=occu_code))+
+  geom_bar(stat = "identity") + coord_flip() + 
+  labs(title="Top 10 Property Type Frequency",
+       x ="Property Type", y = "Frequency")
+```
+
+
+> The analysis will be focused only to "Residential Condo" units listed in the dataset
+
+
+## Residential Properties
+
+The new dataset now can be extracted based on this selected property type "condo". The reason behind selecting only the residential condo is, other property types are relatively fewer in number which might not be sufficient enough for model building and testing process. And also the feature selection becomes easier for one type of property compared to many.  
+
+```{r}
+# extracting property type of "Residential Condo" from the dataset
+property_resi <- property  %>% filter(ptype == 102)
+
+property_resi$u_tot_rms <- as.numeric(property_resi$u_tot_rms)
+
+```
+
+
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=6.5}
+yr_prop <- property_resi %>% filter(yr_built > 0) %>%
+  select(yr_built)%>% arrange(yr_built) %>% count(yr_built) %>% mutate(prop = n/nrow(property_resi))%>% mutate(prop_sum = cumsum(prop)) %>%
+  ggplot(aes(yr_built,prop_sum))+geom_line(lwd=1, colour = "red") +
+  theme_classic() +
+  labs(title="Boston Condo Propertiers Built by Year",
+       x ="Year", y = "Condo Propertiers Built (percent)")+
+  geom_vline(xintercept = 1898, linetype="dashed", color = "red")+
+  annotate("text", x=1890, y=0.35, label="Influx of Condos", angle = 90)
+
+yr_prop
+
+```
+
+
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=6.5}
+val_prop <- property_resi %>% 
+  select(av_total) %>% arrange(desc(av_total)) %>% rownames_to_column("prop") %>%
+  mutate("av_prop" = cumsum(av_total*100/sum(as.numeric(av_total)))) %>% 
+  mutate("prop_prop" = as.numeric(prop)*100/length(prop))%>%
+  ggplot(aes(prop_prop, av_prop))+geom_line(lwd=1, colour = "darkblue") +
+  theme_classic() +
+  labs(title="Boston Residential Condo Assessment Value",
+       x ="Condo Properties (Percent)", y = "Assessed Value (Percent)") +
+  geom_vline(xintercept = 50, linetype="dashed", color = "red")+
+  geom_hline(yintercept = 75, linetype="dashed", color = "red") +
+  annotate("text", x=68, y=65, label="50% Condos account for \n ~75% of total Assessed Value")+
+  geom_vline(xintercept = 25, linetype="dashed", color = "blue")+
+  geom_hline(yintercept = 53, linetype="dashed", color = "blue")+
+  annotate("text", x=42, y=42, label="25% Condos account for \n ~53% of total Assessed Value")
+
+val_prop
+```
+
+
+<a name="pookie"></a>  
+
+## Variable Devision
+
+* 1 to 16 variables are property identification variables  
+<font size="1">pid, cm_id, gis_id, st_num, st_name, st_name_suf, unit_num, zipcode, ptype, lu, own_occ, owner, mail_addressee, mail_address, mail.cs, mail_zipcode</font>
+
+* 17 to 27 variables are property values, areas, built year etc.  
+<font size="1"> av_land, av_bldg, av_total, gross_tax, land_sf, yr_built, yr_remod, gross_area, living_area, num_floors, structure_class</font> 
+
+* 28 to 49 variables are "residential" property characteristics  
+<font size="1"> r_bldg_styl, r_roof_typ, r_ext_fin, r_total_rms, r_bdrms, r_full_bth, r_half_bth, r_bth_style, r_bth_style2, r_bth_style3,r_kitch, r_kitch_style, r_kitch_style2, r_kitch_style3,r_heat_typ, r_ac, ,r_fplace, r_ext_cnd, r_ovrall_cnd,r_int_cnd, r_int_fin, r_view</font>
+
+* 50 to 56 variables are "Condo Main" property characteristics  
+<font size="1"> s_num_bldg, s_bldg_styl, s_unit_res, s_unit_com, s_unit_rc, s_ext_fin, s_ext_cnd </font>
+
+* 57 to 75 variables are "Appartment/Condo" property characteristics  
+<font size="1"> u_base_floor, u_num_park, u_corner, u_orient, u_tot_rms, u_bdrms, u_full_bth, u_half_bth, u_bth_style, u_bth_style2, u_bth_style3, u_kitch_type, u_kitch_style, u_heat_typ, u_ac, u_fplace, u_int_fin, u_int_cnd, u_view</font>
+
+
+
+## Explore Data
+
+All variables are not useful for understanding the trend and patterns of property valuation. Few of the identification variables are summarised below to understand the distribution, probable outliers, and NA's. Histograms and correlation matrix for these identification variables are also prepared to see the distribution and relation between these variables.
+
+```{r}
+summary(property_resi[c(9,11,19,20,21,22,25,26)])
+
+par(mfrow=c(3,3))
+hist(property_resi$av_bldg)
+hist(property_resi$av_total)
+hist(property_resi$gross_tax)
+hist(property_resi$land_sf)
+hist(property_resi$yr_built)
+hist(property_resi$living_area)
+hist(property_resi$num_floors)
+hist(property_resi$u_tot_rms)
+hist(property_resi$u_bdrms)
+
+#Correlation matrix
+#psych::pairs.panels(property_resi[c(19,20,21,22,25,26)])
+#output not created because it is time consuming and results in to very large file size
+
+cor(as.matrix(property_resi[c(19,20,21,22,25,26)]), use="pairwise.complete.obs")
+
+```
+
+The variables land_sf,yr_built and living_area have `NA`. Also the variables land_sf, living_area, av_total, gross_tax have very large diffrence between maximum and 3rd quantile values, which shows that the are few outliers in the dataset. Variables av_total and gross_tax are highly correlated which mean we can drop the gross tax variable data analysis. Also from the graph below we see that there are outliers in the av_total variable.
+
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=6.5}
+yr_val_plt <- property_resi %>% 
+  select(yr_built, av_total, ptype) %>% 
+  filter(!yr_built %in% c(0,NA))%>% 
+  ggplot(aes(yr_built, av_total))+
+  geom_hline(yintercept = 660700, linetype="dashed", color = "blue") +
+  annotate("text", x=1810, y=1660700, label="3rd Qu: 660700")+
+  geom_hline(yintercept = 10000000, linetype="dashed", color = "red") +
+  annotate("text", x=1820, y=11000000, label="Assumed Outlier Threshold")+
+  geom_point(color = "blue") + theme_classic()
+
+yr_val_plt
+#ggplotly(year_val)
+
+```
+
+
+
+# Data Preparation
+
+## Clean and Imputation  Data
+With above finding, the removal of outliers can be carried out. The outlier criteria for yr_built is `0` and `NA`. The outliers criteria for av_total is property value above `1 mil` dollars. The observations with these outlier criteria are `71`. The reason for removing these is to not influance the model prediction by these high-end and expensive properties. Also there are about 6 `NA` in the land_sf variable which can be imputed with its mean.
+
+```{r}
+# identifying yr_built and av_total outliers
+property_resi %>% 
+  select(yr_built, av_total) %>% 
+  filter(yr_built %in% c(0,NA) | av_total>10000000) %>% 
+  count()
+
+
+# removing yr_built and av_total outliers
+property_resi <- property_resi %>% 
+  filter(!yr_built %in% c(0,NA)) %>% 
+  filter( av_total< 10000000)
+
+
+#imputing NA in land area with mean
+property_resi$land_sf <- ifelse(is.na(property_resi$land_sf)==T, mean(property_resi$land_sf, na.rm = T), property_resi$land_sf)
+
+```
+
+##Principal Component Analysis
+Apart from the variabes discussed in **Explore Data** section above, the bumeric variables in the data should be analysed with the help of Principal component analysis for exploratory data analysis, allowing to better visualize the variation present in dataset with many variables. It is particularly helpful in the case of wide datasets like this that we are dealing with.
+```{r}
+#Extracting numeric features
+nums <- unlist(lapply(property_resi, is.numeric))
+
+# Performing PCA
+prop_pca <- prcomp(property_resi[c(19,20,21,22,25,26)], center = TRUE,scale. = TRUE)
+
+summary(prop_pca)
+```
+The variables av_total, gross_tax and land_sf  explain respectively 59.2 percent , 19.2 percent and 15.3 percent of the total variance in the dataset (6 numeric variables).
+
+
+## Select Data
+
+This filtered dataset has basically 2 divisions in the data structure. **1. Residential Condo** and **2. 1/2/3 Family Dwelling**. As discussed in [Section 2.1](#pookie) the dataset has saperate variables for residential properties(1/2/3 family dwelling units) and saperate variables for appartment/condo properties. Therefore the logical thing to do would be to split the dataset into two and select the data only relevant to Condos. This will help to remove many empty fields from the dataset. 
+
+
+```{r}
+# renaming the dataset
+condo <- property_resi
+```
+
+
+For selecting data the same criteria is applied, as discussed in previous [Section 2.1](#pookie). Additionally property identification variables like *"cm_id","gis_id", "st_num", "st_name_suf","unit_num", "lu", "owner", "mail_addressee", "mail_address", "mail.cs", and "mail_zipcode"* can be omited from the data set because they are not useful for analysis.
+
+```{r}
+
+condo <- condo %>% select("zipcode","own_occ","av_total","land_sf","yr_built","yr_remod","gross_area","living_area","num_floors","u_base_floor","u_corner","u_orient","u_tot_rms","u_bdrms","u_full_bth","u_bth_style","u_kitch_type","u_kitch_style","u_heat_typ", "u_ac","u_int_fin", "u_int_cnd","u_view")
+
+
+# removing a row with missing values in 
+# almost all characteristics variabes
+condo <- condo[-35173,]
+
+#readjusting factor levels for few variables
+condo[]<-lapply(condo, function(x) if(is.factor(x)) factor(x) else x)
+levels(condo$u_corner)[1] <- "N"
+condo$u_orient<-plyr::revalue(condo$u_orient, c("a"="A","A"="A","B"="B","C"="C","E"="E", "f"="F", "F"="F", "m"="M","M"="M", "t"="T","T"="T"))
+condo$u_heat_typ<-plyr::revalue(condo$u_heat_typ, c(" "="O", "C"="O", "D"="O", "E"="E","f"="F", "F"="F", "G"="O","I"="O","N"="N","P"="P","S"="S","w"="W","Y"="W"))
+condo$u_int_fin <- plyr::revalue(condo$u_int_fin, c("E" = "E","n"="N", "S"="S"))
+
+```
+
+With this selection process the dataset end up with 30 relavent variables.  
+
+## Construct Data
+
+Here it would be intresting to know the effect of remodeling the house (or part of the house) on property assessment value. To incorporate this in to our analysis, duration from the **year of remodel to year "2018" diffrence** for all the observations can be calculated. This diffrence can be added as a new variable to **condo** datsets. Once this new column is added we can drop the `yr_remod` variable column from both datasets, to eliminate `NA`. 
+
+```{r}
+# creating new column with if condition 
+# to calculate years since remodel
+condo$remod_diff <- ifelse(condo$yr_remod %in% c(0,1500,NA), 
+                           2018-condo$yr_built, 
+                           2018-condo$yr_remod)
+
+# dropping the variable yr_remod
+# from both condo datsets
+condo <- condo %>% select(-yr_remod)
+```
+
+
+## Integrate Data
+An intresting aspect of analysis would be to look at the property prices, "zipcode" wise. The zip codes are not very efficient for understanding the property values and compare it with other parts of the city. Here respective neighbourhood names can be added to the datasets in new column to understand to add the geographic perspective in the analysis. The relavent neighborhood names present in our dataset have been taken from **[here](http://archive.boston.com/news/local/articles/2007/04/15/sixfigurezipcodes_city/)**.
+
+```{r}
+#creating data frame for neighbourhood with zipcodes
+nbhd <- data.frame(
+  zipcode=c(2108,2109,2110,2111,2113,2114,2115,2116,2118,2119,2120,2121,2122,2124,2125,2126,2127,2128,2129,2130,2131,2132,2134,2135,2136,2199,2210,2215,2446,2467, 2186, 2445),
+  nbh=c("Beacon  Hill", "North End", "Downtown", "Chinatown", "Hanover", "West End", "Fenway", "Back Bay", "South End", "Roxbury", "Mission Hill", "Grove Hall", "Dorchester", "Dorchester", "Dorchester", "Mattapan", "South Boston", "East Boston", "Charlestown", "Jamaica Plain", "Roslindale", "West Roxbury", "Allston", "Brighton", "Hyde Park", "Boylston", "Boston", "Kenmore", "Brookline", "Brookline","Milton", "Brookline"))
+
+# adding neighbourhood column to Condo
+#condo <- left_join(condo, nbhd, by = "zipcode")
+```
+Note: later on realised that integration will not have any use.
+
+
+## Checking for `NA`
+Now that the dataset is ready, it would be wise to once again check for any `NA` values that might have been missed and also have a look at summary of the datasets.
+```{r}
+sum(is.na(condo))
+
+summary(condo)
+```
+
+
+#Modeling
+
+The models considered here for predicting the assessment value of condo properties in Boston are **linear regression**, **regression tree** and **neural network**. Befor starting the modeling process the data has to be processed, mainy in terms normaliztion and creating dumy variables.
+
+## Data processing
+
+With the help of function `dummyVars` in  `caret` package creating dummy variables is very easy. The general rule for creating dummy variables is to have one less variable than the number of categories present to avoid perfect collinearity. the command `fullRank` in this function helps to solve this problem of collinearity by creating one less variable of all categories.
+```{r}
+#Loading the required libraries
+#library("caret")
+
+#Seeting the random seed
+set.seed(25)
+
+
+# creating dummy variables for all the categorical variables
+dmy <- dummyVars(" ~ .", data = condo, fullRank=T)
+condo_dmy <- data.frame(predict(dmy, newdata = condo))
+dim(condo_dmy)
+
+```
+This process creates extra variables in the dataset and now the original Condo dataset has 48 variables.
+
+## Feature selection
+Now that the dummy variables have been created, it is not wise to use all the variables unless explicitly needed. Therefore ratherethan getting into complicated feature selection methos, the variables for model building are selected based on their correlation with the assessment value variable
+
+```{r}
+
+# finding correlation of variables with av_total  
+correl <- data.frame( "assment.correlation" = cor(condo_dmy[,-3], condo_dmy[,3]))
+
+# identify variables with correlation grater than +-0.25
+correl<- correl%>%round(2) %>% rownames_to_column("variables")%>% arrange(desc(assment.correlation)) %>% filter(assment.correlation>=0.25 | assment.correlation<= -0.25)
+
+# create vector of correlated variable
+vari <- correl %>% pull(variables)
+vari <- c(vari,"av_total")
+
+
+```
+
+## Normalization
+Normalizing the data is very important before it is used in any process of modeling. Using the `caret` package again the preprocessing of the data is carried out as shown below. The methodes used are "center" and "scale", which basically means **Z-score** normalization using mean and standard deviation of the columns. Here the normalization process is only done for the selected variables identified in above feature selecction phase.
+
+```{r}
+# data normalization for correlated variables
+preprocessParams <- preProcess(condo_dmy[,vari], method = c("center","scale"))
+transf <- predict(preprocessParams, condo_dmy[,vari])
+
+```
+
+## Spiting the Data
+The data set is split into traing dataset and test dataset using `createDataPartition` handy function from `caret`. the split is made in proportion of 75% - 25% for training and test dataset respectively.
+```{r}
+# spliting training set into two parts based on outcome: 75% and 25%
+index <- createDataPartition(transf$av_total, p=0.75, list=FALSE)
+trainSet <- transf[ index,]
+testSet <- transf[-index,]
+
+```
+
+
+
+## Multiple Linear Regression
+
+Multiple linear regression is by far the most comman method for modeling and predicting numeric data. 
+```{r}
+
+#Training the regression model
+#reg_model <- lm(trainSet$av_total~.,trainSet)
+reg_model <- step(lm(trainSet$av_total~.,trainSet), direction = "backward", trace=F)
+
+summary(reg_model)
+
+
+
+# Predicting for test dataset
+testSet$pred_lr<-predict(object = reg_model,testSet[,c(1:13)])
+
+# accuracy
+cor(testSet$pred_lr, testSet$av_total)
+
+# Root mean squared error
+RMSE(testSet$pred_lr, testSet$av_total)
+
+```
+
+The model summary states that the R-squared is 0.71 and the overall model is statistically significant as the p-value is well below 0.05. Almost all independent variables are also statistically significant. Residual standard error is 0.55. This model when used on the test dataset the predictions of av_total is having correlation of $`r round(cor(testSet$pred_lr, testSet$av_total),2)`$ and root mean squared error $`r round(RMSE(testSet$pred_lr, testSet$av_total),2)`$.
+
+## Regression Tree Model
+
+```{r}
+#Loading the required libraries
+#library("rpart")
+#library("rpart.plot")
+
+
+# training the regression tree model
+rtree_modl <- rpart(trainSet$av_total~.,trainSet)
+
+# model output
+rtree_modl
+
+# visualizing decision trees
+rpart.plot(rtree_modl, digits = 4, fallen.leaves = TRUE, type = 3, extra = 101)
+
+# predicting for test dataset
+testSet$pred_rtree <- predict(rtree_modl, testSet[,c(1:13)])
+
+# accuracy
+cor(testSet$pred_rtree, testSet$av_total)
+
+# root mean squared error
+RMSE(testSet$pred_rtree, testSet$av_total)
+
+```
+
+The model above predicts the target variable using regression tree. It uses automatic feature selection for the given database. This model when used on the test dataset the predictions of av_total is having correlation of $`r round(cor(testSet$pred_rtree, testSet$av_total),2)`$ and root mean squared error $`r round(RMSE(testSet$pred_rtree, testSet$av_total),2)`$.
+
+
+## Artificial Neural Network
+
+```{r}
+#Loading the required libraries
+#library("neuralnet")
+
+# Training the neural network model
+neur_modl <- neuralnet(av_total ~ living_area+ land_sf+gross_area+ u_full_bth+ u_int_cnd.E+ u_base_floor +u_view.E+u_view.S+u_bdrms+u_bth_style.S+u_kitch_style.S+u_ac.N+ u_int_fin.N,trainSet)
+
+# visualising network topology
+plot(neur_modl)
+
+# generate predictions on the test dataset
+model_results <- compute(neur_modl, testSet[,c(1:13)])
+
+# extracting $net.result for predicted values
+testSet$pred_ann <- model_results$net.result
+
+# accuracy
+cor(testSet$pred_ann, testSet$av_total)
+
+# Root mean squared error
+RMSE(testSet$pred_ann, testSet$av_total)
+
+```
+
+Neural network model is used here as a third prediction model for assessment values of condos. It is capable of modeling more complex patterns than nearly any algorithm. This model when used on the test dataset the predictions of av_total is having correlation of $`r round(cor(testSet$pred_ann, testSet$av_total),2)`$ and root mean squared error $`r round(RMSE(testSet$pred_ann, testSet$av_total),2)`$.
+
+
+
+## Ensemble learner
+Ensembling is a method to put together two or more Machine Learning algorithm learners to make more profound and strong model that includes the effect of all the learners which can improve the accuracy quite high. The ensamble method used here is **stacking**, which means creating multiple models of diffrent type and combining them into a supervisor model.    
+
+Here, with the help of `caretEnsemble` package this implimentation is made very easy, to incorporate the above three models in to one. This ensamble model is **cross validated**  with k=5, for better accuracy. For ensamble of linear regression, neural network and regression tree, **genralised linear regression (glm)** model is used. Following is the commented code chunk for the ensamble. 
+
+```{r}
+
+#Loading the required libraries
+#library("caretEnsemble")
+
+# Stacking algorithms create submodels
+
+# setting training controls control 
+control <- trainControl(method="cv", number=5, savePredictions=TRUE)
+
+# crating required algorithms list
+algorithmList <- c("lm", "rpart", "nnet")
+
+# setting seed for reproducibility
+set.seed(25)
+```
+
+```{r, echo=T, message=FALSE, warning=FALSE, results='hide'}
+# Running the models in the list
+models <- caretList(av_total~., data=trainSet, trControl=control, methodList=algorithmList)
+```
+
+```{r}
+# for collection, analyzing and visualizing a set of resampling results
+results <- resamples(models)
+
+# See and visualize results
+dotplot(results)
+```
+
+
+It is imperative to look at the correlation when the predictions of various models are combined together and used for stacking. It is better when the sub-models have low correlation. In other words, the models are helpful in predicting but in their own diffrent ways. This helps in the the ensambles to extract the best out of each model and improve the accuracy.
+
+Following, shows that the none of the three models are correlated.
+```{r}
+# correlation between results
+modelCor(results)
+splom(results)
+```
+
+Let's combine the predictions of the classifiers using a simple linear model.
+
+```{r}
+# stack using glm
+stackControl <- trainControl(method="repeatedcv", number=10, repeats=3, savePredictions=TRUE)
+set.seed(25)
+stack.glm <- caretStack(models, method="glm", trControl=stackControl)
+```
+
+
+```{r}
+# predicting the assesment values using ensamble
+Predictions <- predict(stack.glm, testSet[1:13])
+
+# extracting $net.result for predicted values
+testSet$pred_ens <- Predictions
+
+# accuracy
+cor(testSet$pred_ens, testSet$av_total)
+
+# Root mean squared error
+RMSE(testSet$pred_ens, testSet$av_total)
+
+
+```
+
+This model when used on the test dataset, the predictions of av_total is having correlation of $`r round(cor(testSet$pred_ens, testSet$av_total),2)`$ and root mean squared error $`r RMSE(testSet$pred_ens, testSet$av_total)`$.
+
+## Model Performance comparision
+
+```{r}
+perform <- data.frame(
+  "Models"=c("Linear Regression", 
+             "Regeression tree", 
+             "Neural Network", 
+             "Ensemble"),
+  "Correlation"=c(cor(testSet$pred_lr, testSet$av_total),
+                  cor(testSet$pred_rtree, testSet$av_total),
+                  cor(testSet$pred_ann, testSet$av_total),
+                  cor(testSet$pred_ens, testSet$av_total)),
+  "RMSE" = c(RMSE(testSet$pred_lr, testSet$av_total),
+             RMSE(testSet$pred_rtree, testSet$av_total),
+             RMSE(testSet$pred_ann, testSet$av_total),
+             RMSE(testSet$pred_ens, testSet$av_total)),
+  "MAE" = c(MAE(testSet$pred_lr, testSet$av_total),
+            MAE(testSet$pred_rtree, testSet$av_total),
+            MAE(testSet$pred_ann, testSet$av_total),
+            MAE(testSet$pred_ens, testSet$av_total))
+  )
+
+perform
+```
+The model performance comparision above presents the correlation, root mean squared error and mean absolute error for all four model predictions that we created in this study. The best performer is neural network learner in all three aspects. However, important thing to consider here is the **model tuning of ensamble learner is not carried out, which could have made more diffrence in the prediction**. Ensemble learners are most of the time better at predicting because of the combined effect of diffrent input variables. As we can see here that the Ensemble was able to reduce the RMSE compared to linear regression and regression tree. However, though it is close, it is not as effective as neural network.
+
+
+# Conclusion
+
+* This exploratory research is focused on analysing the Boston property trends and make models to predict property values which can be helpful to sellers and buyers of Boston.  
+
+* Data selection is very important part here. It gives direction to the whole process. For example, here it is only "condos", if there are more categoris of propertise in the analysis, then the data to be selected would be quite diffrent, and eventualy the model prediction would also be diffrent.
+
+* Same process can be applied for other type of property categories, with approprite dataselection and processing, to make prediction models.
+
+* Ensamble learners are not always effective at predicting and lowering the error. However it depends on the tuning parameters applied. In this study tuning was not done.
+
+
+
+
+
+
+
+
+
+
+

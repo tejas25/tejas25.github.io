@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Tejas Rawal</title>
+    <link>/about/post/</link>
+    <description>Recent content in Projects on Tejas Rawal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 07 Dec 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/about/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Analysis of Boston Property Assessments</title>
+      <link>/about/da5030.proj.rawal/</link>
+      <pubDate>Fri, 07 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/da5030.proj.rawal/</guid>
+      <description>library(&amp;quot;tidyverse&amp;quot;)library(&amp;quot;caret&amp;quot;)library(&amp;quot;neuralnet&amp;quot;)library(&amp;quot;rpart&amp;quot;)library(&amp;quot;rpart.plot&amp;quot;)library(&amp;quot;caretEnsemble&amp;quot;)Business Understanding : IntroductionA recent article dated Nobember 28, 2018 from Boston Globe suggests that “Boston is still a tough - and expensive - place to buy a house, but the years of prices galloping relentlessly upward may be nearing an end.” According to data from the Greater Boston Association of Realtors the number of homes and condominiums sold in Boston has increased 6 percent in July 2018 compared to July 2017.</description>
+    </item>
+    
+    <item>
+      <title>Analysis of Food Establishment Inspections</title>
+      <link>/about/pro3_food/</link>
+      <pubDate>Thu, 19 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/pro3_food/</guid>
+      <description>Analysis of Food Inspection InspectionsThe Health Division of the Department of Inspectional Services ensures that all food establishments in the City of Boston meet relevant sanitary codes and standards. Businesses that serve food are inspected at least once a year, and follow-up inspections are performed on high risk establishments. Health inspections are also conducted in response to complaints of unsanitary conditions or illness. This is a legacy dataset containing records of individual inspections and results.</description>
+    </item>
+    
+    <item>
+      <title>City in time and Space</title>
+      <link>/about/pro2_city_in_time_space/</link>
+      <pubDate>Fri, 15 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/about/pro2_city_in_time_space/</guid>
+      <description>                     </description>
+    </item>
+    
+    <item>
+      <title>HUBWAY DATA EXERCISE</title>
+      <link>/about/pro1/</link>
+      <pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>/about/pro1/</guid>
+      <description>1Network Visualisation : Node-linkRide Network of Nodes 7, 8 and 9The network has 3 sub networks of Nodes 7, 8 and 9 connected with their respective rides edges. A simple representation.
+smpl &amp;lt;- graph.data.frame(Hubway1)igraph.options(layout=layout.kamada.kawai,vertex.label = NA, vertex.size = 5, vertex.frame.color = &amp;quot;blue&amp;quot;, vertex.color = &amp;quot;lightblue&amp;quot;) plot(smpl, edge.arrow.size=0.1)2Network Visualisation : Node-link (Normalised)Ride Network of Nodes 7, 8 and 9Same as above, the network has 3 sub networks, with the normalised values.</description>
+    </item>
+    
+  </channel>
+</rss>

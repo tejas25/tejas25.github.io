@@ -1,0 +1,59 @@
+---
+date: "2018-04-19"
+tags:
+- Boston
+- theme
+- command-line
+title: Analysis of Food Establishment Inspections
+---
+
+##Analysis of Food Inspection Inspections  
+
+The Health Division of the Department of Inspectional Services ensures that all food establishments in the City of Boston meet relevant sanitary codes and standards. Businesses that serve food are inspected at least once a year, and follow-up inspections are performed on high risk establishments. Health inspections are also conducted in response to complaints of unsanitary conditions or illness. This is a legacy dataset containing records of individual inspections and results.
+
+The data is available on https://data.boston.gov/dataset/food-establishment-inspections
+
+##Research question
+**Analyse and identify the trends in violations `of food establishments in Boston city.**
+
+##Data preparation
+The dataset consist inspection records since 2007. To understand the current trend, I have trimmed down the data set to the records from 2016 to 2018. Then the data was geocoded to match the actual locations on the map. The base map I choose for the map is on lighter greyish blue tones, so that the data present over the base map can be distinct and the map can be comprehensive.
+
+##Analysis
+
+First I mapped the inspection violation year wise on the map of Boston, and color coded the years for biter differentiation. Because of the large number of data points it was a little difficult to understand the overall distribution or some kind of pattern within the data set.
+
+{{< bootstrap-card 
+img="Year-wise Violations-1.JPG" 
+title=""
+text="" 
+alt="1" 
+command="Resize" 
+options="1000x" 
+class="mb-2" >}}
+ 
+The second step was to understand the intensity of the violations across the geography of Boston. For that the values of violation levels from the data were incorporated on the map to identify some kind of pattern. The intensity levels of violation are divided in to 3 categories low, medium and high. I don't know, but the higher intensity violations seem to be increasing as you go from outskirts to down town, this also say that the number of restaurant are increasing in the towards the direction of Boston downtown. 
+
+  
+
+As a third step I wanted to identify the clusters where there are higher numbers of violation gathered. Before doing the cluster analysis I attempted Spatial Autocorrelation (Global Moran's I). Given a set of features and an associated attribute, this tool evaluates whether the pattern expressed is clustered, dispersed, or random. Based on this analysis I could identify that at distance of 120 m the clustering is happening. The z score is highest at the distance 120.
+ 
+ 
+ 
+Following is the cluster analysis that was done as a next step. Here we can clearly see that the Boston downtown has 3 clusters of violating food establishments in the neighborhood. Another interesting finding from this analysis is the high outlier in Alston neighborhood. The reason behind this can be because of the higher density of restaurant in the downtown area and in Alston. 
+ 
+ 
+Similar to cluster analysis, Hotspot analysis is done to identify high intensity areas in and around Boston city. This reveals that not only downtown and Alston (as identified in cluster analysis), but east bastion also has few of the high violations intensity area. 
+ 
+
+
+An interactive map with the help of online application CARTO, was made using the same data set. Here the names of the food establishments were also incorporated in the data points so that with the click of a button on that point, we can see the name of the establishment, year of violation and intensity of that violation recorded.
+This map can be accessed through ttps://tejas2509.carto.com/builder/88f7d92c-6d50-4514-a5c2-3311ae44039d/embed 
+
+
+<iframe width="100%" height="520" frameborder="0" src="https://tejas2509.carto.com/builder/88f7d92c-6d50-4514-a5c2-3311ae44039d/embed" allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>
+
+Conclusion:
+The findings are quite evident from the maps that the establishments in Boston downtown, Alston and east Boston neighborhood have higher violation trends compared to rest of the city. This can be because of the high number of restaurants concentrated in these areas. Also it is equally likely that the coustomers are highly active in reporting any of the bad practice to the authority and because of this the violation trends are higher. As future scope of study the analysis can be carried forward using yelp data and reviews, to understand the user/ customer perspective of this situation. Further site visits can be done by identifying frequent violators and visually analyses the situation on ground. Another aspect of study which was not covered here is the type of violation. Trends based on type of violations can be understood in detail to identify any specific trend in food establishment violations. This study can be hlpful to decision makes and authority for identifying problems, challenges and to propose any specific intervention based on the findings. Also this can be a useful study for the "food critiques" to them to identify any problem restaurant and write a review. 
+
+

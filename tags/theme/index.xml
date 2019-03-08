@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Theme on Tejas Rawal</title>
+    <link>/about/tags/theme/</link>
+    <description>Recent content in Theme on Tejas Rawal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 15 Dec 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/about/tags/theme/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>City in time and Space</title>
+      <link>/about/pro2_city_in_time_space/</link>
+      <pubDate>Fri, 15 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/about/pro2_city_in_time_space/</guid>
+      <description>                     </description>
+    </item>
+    
+    <item>
+      <title>HUBWAY DATA EXERCISE</title>
+      <link>/about/pro1/</link>
+      <pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>/about/pro1/</guid>
+      <description>1Network Visualisation : Node-linkRide Network of Nodes 7, 8 and 9The network has 3 sub networks of Nodes 7, 8 and 9 connected with their respective rides edges. A simple representation.
+smpl &amp;lt;- graph.data.frame(Hubway1)igraph.options(layout=layout.kamada.kawai,vertex.label = NA, vertex.size = 5, vertex.frame.color = &amp;quot;blue&amp;quot;, vertex.color = &amp;quot;lightblue&amp;quot;) plot(smpl, edge.arrow.size=0.1)2Network Visualisation : Node-link (Normalised)Ride Network of Nodes 7, 8 and 9Same as above, the network has 3 sub networks, with the normalised values.</description>
+    </item>
+    
+  </channel>
+</rss>

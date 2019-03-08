@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Tejas Rawal</title>
+    <link>/about/tags/</link>
+    <description>Recent content in Tags on Tejas Rawal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 07 Dec 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/about/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Boston</title>
+      <link>/about/tags/boston/</link>
+      <pubDate>Fri, 07 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/boston/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Boston311</title>
+      <link>/about/tags/boston311/</link>
+      <pubDate>Fri, 15 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/boston311/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Command Line</title>
+      <link>/about/tags/command-line/</link>
+      <pubDate>Fri, 15 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/command-line/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Ensemble Learner</title>
+      <link>/about/tags/ensemble-learner/</link>
+      <pubDate>Fri, 07 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/ensemble-learner/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Food Establishments</title>
+      <link>/about/tags/food-establishments/</link>
+      <pubDate>Thu, 19 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/food-establishments/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Gis</title>
+      <link>/about/tags/gis/</link>
+      <pubDate>Thu, 19 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/gis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Hubway</title>
+      <link>/about/tags/hubway/</link>
+      <pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/hubway/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Machine Learning</title>
+      <link>/about/tags/machine-learning/</link>
+      <pubDate>Fri, 07 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/machine-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Property Assessment</title>
+      <link>/about/tags/property-assessment/</link>
+      <pubDate>Fri, 07 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/property-assessment/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Theme</title>
+      <link>/about/tags/theme/</link>
+      <pubDate>Fri, 15 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/about/tags/theme/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

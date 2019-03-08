@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Boston on Tejas Rawal</title>
+    <link>/about/tags/boston/</link>
+    <description>Recent content in Boston on Tejas Rawal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 07 Dec 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/about/tags/boston/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Analysis of Boston Property Assessments</title>
+      <link>/about/da5030.proj.rawal/</link>
+      <pubDate>Fri, 07 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/da5030.proj.rawal/</guid>
+      <description>library(&amp;quot;tidyverse&amp;quot;)library(&amp;quot;caret&amp;quot;)library(&amp;quot;neuralnet&amp;quot;)library(&amp;quot;rpart&amp;quot;)library(&amp;quot;rpart.plot&amp;quot;)library(&amp;quot;caretEnsemble&amp;quot;)Business Understanding : IntroductionA recent article dated Nobember 28, 2018 from Boston Globe suggests that “Boston is still a tough - and expensive - place to buy a house, but the years of prices galloping relentlessly upward may be nearing an end.” According to data from the Greater Boston Association of Realtors the number of homes and condominiums sold in Boston has increased 6 percent in July 2018 compared to July 2017.</description>
+    </item>
+    
+    <item>
+      <title>Analysis of Food Establishment Inspections</title>
+      <link>/about/pro3_food/</link>
+      <pubDate>Thu, 19 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/about/pro3_food/</guid>
+      <description>Analysis of Food Inspection InspectionsThe Health Division of the Department of Inspectional Services ensures that all food establishments in the City of Boston meet relevant sanitary codes and standards. Businesses that serve food are inspected at least once a year, and follow-up inspections are performed on high risk establishments. Health inspections are also conducted in response to complaints of unsanitary conditions or illness. This is a legacy dataset containing records of individual inspections and results.</description>
+    </item>
+    
+  </channel>
+</rss>

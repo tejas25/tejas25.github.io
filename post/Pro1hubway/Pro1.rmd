@@ -1,0 +1,101 @@
+---
+date: "2014-09-28"
+tags:
+- Hubway
+- theme
+- command-line
+title: HUBWAY DATA EXERCISE
+---
+
+ 
+*** 
+ 
+ 
+ 
+##1
+### Network Visualisation : Node-link
+#### Ride Network of Nodes 7, 8 and 9
+
+The network has 3 sub networks of Nodes 7, 8 and 9 connected with their respective rides edges. A simple representation.
+
+
+```{r, include=FALSE}
+library(igraph)
+library(tidyverse)
+Hubway1 <- read.delim("Hubway Tej.txt", header = FALSE)
+ 
+
+
+```
+
+
+
+```{r}
+smpl <- graph.data.frame(Hubway1)
+
+igraph.options(layout=layout.kamada.kawai,
+               vertex.label = NA,           
+               vertex.size = 5,            
+               vertex.frame.color = "blue",     
+               vertex.color = "lightblue") 
+
+plot(smpl, edge.arrow.size=0.1)
+
+```
+
+
+
+*** 
+
+##2
+### Network Visualisation : Node-link (Normalised)
+#### Ride Network of Nodes 7, 8 and 9
+
+Same as above, the network has 3 sub networks, with the normalised values. The size diffrence in Nodes 7, 8 and 9 is clearly visible, but it is little difficult to understand without the lables. Also the normalisation has transformed the edges into points. This can be helpful to understand the importance/ magnitude of the Nodes.
+
+
+```{r}
+V(smpl)$degree       <-  degree(smpl, normalized = TRUE)
+V(smpl)$betweenness  <-  betweenness(smpl, normalized = TRUE)
+V(smpl)$closeness    <-  closeness(smpl, normalized = TRUE)
+
+
+igraph.options(layout=layout.kamada.kawai,
+               vertex.label = NA,           
+               vertex.size = 10,            
+               vertex.frame.color = "darkblue",     
+               vertex.color = "white")  
+
+V(smpl)$size  <- V(smpl)$degree * 100   
+V(smpl)$color <- V(smpl)$betweenness * ncol(smpl)  
+V(smpl)$color <- V(smpl)$closeness   * ncol(smpl)    
+plot(smpl, edge.arrow.size=0.3)
+
+
+```
+*** 
+##3
+### Network Visualisation : Node-link (Interactive)
+#### Ride Network of Nodes 7 and another sample network
+
+The interactive ride network of Node 7 - Fan Pier is connected with its rides edges. 
+```{r}
+
+library(networkD3)
+Hubway2 <- read.delim("Hubway Tej Intractive.txt", header = FALSE)
+n <- simpleNetwork(Hubway2)
+n
+```
+
+
+#### Sample Network
+To understand the network and the connections within, by interactive means.
+
+```{r}
+
+Hubway3 <- read.delim("Hubway Tej Intractive2.txt", header = FALSE)
+simpleNetwork(Hubway3)
+
+
+```
+
